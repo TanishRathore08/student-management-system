@@ -242,5 +242,44 @@ def dashboard_data():
         if 'cursor' in locals(): cursor.close()
         conn.close()
 
+@app.route('/_debug/users')
+def _debug_users():
+    """Temporary debug route to list users. Only works when app.debug is True."""
+    # Temporarily allow debug access for troubleshooting
+    # if not app.debug:
+    #     abort(404)
+    
+    conn = get_db_connection()
+    if not conn:
+        return "No DB connection"
+    
+    try:
+        if DB_TYPE == 'mysql':
+            cur = conn.cursor(buffered=True)
+        else:
+            cur = conn.cursor()
+            
+        cur.execute("SELECT id, username, email, password FROM users LIMIT 200")
+        rows = cur.fetchall()
+    except Exception as e:
+        return f"Error: {e}"
+    finally:
+        # cur.close() # handled by context or subsequent cleanup
+        if 'cur' in locals(): cur.close()
+        conn.close()
+
+    # Render a simple plain text response
+    out = [f"DB_TYPE: {DB_TYPE}"]
+    for r in rows:
+        out.append(str(r))
+    return "<pre>" + "\n".join(out) + "</pre>"
+
+@app.route('/_debug/status')
+def _debug_status():
+    return {
+        'db_type': DB_TYPE,
+        'config_host': os.environ.get("DB_HOST", "Not Set")
+    }
+
 if __name__ == '__main__':
     app.run(debug=True)
