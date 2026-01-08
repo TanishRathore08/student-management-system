@@ -181,6 +181,44 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
+@app.route('/api/students', methods=['POST'])
+def add_student():
+    if 'username' not in session:
+        return {'error': 'Unauthorized'}, 401
+    
+    data = request.json
+    name = data.get('name')
+    course = data.get('course')
+    status = data.get('status', 'Active')
+    
+    if not name or not course:
+        return {'error': 'Missing data'}, 400
+
+    conn = get_db_connection()
+    if not conn:
+        return {'error': 'Database unavailable'}, 503
+
+    try:
+        # Use simple cursor for insert
+        cursor = conn.cursor()
+        
+        # Use current date
+        from datetime import datetime
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        
+        execute_query(cursor, 
+            "INSERT INTO students (name, course, enrollment_date, status) VALUES (%s, %s, %s, %s)",
+            (name, course, date_str, status)
+        )
+        conn.commit()
+        return {'message': 'Student added successfully'}, 201
+    except Exception as e:
+        print(f"Error adding student: {e}")
+        return {'error': str(e)}, 500
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        conn.close()
+
 @app.route('/api/dashboard-data')
 def dashboard_data():
     if 'username' not in session:
