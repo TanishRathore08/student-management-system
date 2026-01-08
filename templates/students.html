@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - SMS</title>
+    <title>Students - SMS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -16,8 +16,8 @@
                 <span>SMS Portal</span>
             </div>
             <ul class="nav-links">
-                <li><a href="{{ url_for('main') }}" class="active"><i class="fas fa-home"></i>&nbsp; Dashboard</a></li>
-                <li><a href="{{ url_for('students_page') }}"><i class="fas fa-user-graduate"></i>&nbsp; Students</a></li>
+                <li><a href="{{ url_for('main') }}"><i class="fas fa-home"></i>&nbsp; Dashboard</a></li>
+                <li><a href="{{ url_for('students_page') }}" class="active"><i class="fas fa-user-graduate"></i>&nbsp; Students</a></li>
                 <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-chalkboard-teacher"></i>&nbsp; Courses</a></li>
                 <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-chart-bar"></i>&nbsp; Reports</a></li>
                 <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-cog"></i>&nbsp; Settings</a></li>
@@ -38,40 +38,15 @@
         <div class="main-content">
             <header class="header">
                 <div>
-                    <h1>Welcome back, {{ username }}!</h1>
-                    <p class="date-display">Here's what's happening with your students today.</p>
+                    <h1>Student Directory</h1>
+                    <p class="date-display">Manage and view all enrolled students.</p>
                 </div>
-                <div style="display: flex; gap: 15px;">
+                <div>
                     <button id="addStudentBtn" style="width: auto; margin: 0; padding: 10px 20px;"><i class="fas fa-plus"></i> Add Student</button>
-                    <!-- <button class="ghost" style="width: auto; margin: 0;"><i class="fas fa-bell"></i></button> -->
                 </div>
             </header>
 
-            <div class="stats-grid">
-                <div class="card">
-                    <div class="card-title">Total Students</div>
-                    <div class="card-value" id="total-students">Loading...</div>
-                    <div class="card-trend"><i class="fas fa-arrow-up"></i> +12% from last month</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Active Courses</div>
-                    <div class="card-value" id="active-courses">Loading...</div>
-                    <div class="card-trend"><i class="fas fa-check"></i> All systems operational</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Attendance Rate</div>
-                    <div class="card-value">95%</div>
-                    <div class="card-trend"><i class="fas fa-arrow-up"></i> +2% increase</div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Pending Fees</div>
-                    <div class="card-value" id="pending-fees">Loading...</div>
-                    <div class="card-trend" style="color: #ff9f43;"><i class="fas fa-exclamation-circle"></i> <span id="pending-count">...</span> students pending</div>
-                </div>
-            </div>
-
-            <div class="recent-activity">
-                <h3>Recent Enrolled Students</h3>
+            <div class="recent-activity" style="margin-top: 20px;">
                 <div class="table-container">
                     <table>
                         <thead>
@@ -79,20 +54,24 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Course</th>
-                                <th>Date</th>
+                                <th>Enrollment Date</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-students-body">
+                        <tbody id="students-list-body">
                             <!-- Populated by JS -->
+                            <tr>
+                                <td colspan="6" style="text-align:center;">Loading students...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-</div>
     </div>
-            <!-- Add Student Modal -->
+    
+    <!-- Reuse Add Student Modal -->
     <div id="addStudentModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
         <div class="modal-content" style="background: white; padding: 2rem; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -123,34 +102,19 @@
             </form>
         </div>
     </div>
-    
+
     <script>
-        // Modal Logic
+        // --- Modal Logic (Duplicated for simplicity, could be shared) ---
         const modal = document.getElementById('addStudentModal');
-        // Robust selector: ID explicitly added to button above
         const addBtn = document.getElementById('addStudentBtn'); 
-        
-        // Make sure the modal is hidden initially via CSS class or inline style check
         modal.style.display = 'none';
 
         if(addBtn) {
-            addBtn.onclick = function() {
-                modal.style.display = 'flex';
-            }
-        } else {
-            console.error("Add Student button not found!");
+            addBtn.onclick = function() { modal.style.display = 'flex'; }
         }
 
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-
-        // Close checking click outside
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
+        function closeModal() { modal.style.display = 'none'; }
+        window.onclick = function(event) { if (event.target == modal) closeModal(); }
 
         function handleAddStudent(e) {
             e.preventDefault();
@@ -158,7 +122,6 @@
             const course = document.getElementById('s_course').value;
             const status = document.getElementById('s_status').value;
 
-            // Show loading state
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerText;
             submitBtn.innerText = "Adding...";
@@ -166,78 +129,68 @@
 
             fetch('/api/students', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, course, status })
             })
             .then(res => res.json())
             .then(data => {
-                if(data.error) {
-                    alert('Error: ' + data.error);
-                } else {
-                    // Success
-                    closeModal();
-                    document.getElementById('addStudentForm').reset();
-                    // Refresh data immediately
-                    fetchDashboardData();
-                    alert('Student added successfully!');
-                }
+                if(data.error) throw new Error(data.error);
+                closeModal();
+                document.getElementById('addStudentForm').reset();
+                fetchStudents(); // Refresh list
+                alert('Student added successfully!');
             })
-            .catch(err => {
-                console.error(err);
-                alert('Connection Failed: ' + err.message);
-            })
+            .catch(err => alert('Error: ' + err.message))
             .finally(() => {
                 submitBtn.innerText = originalText;
                 submitBtn.disabled = false;
             });
         }
 
-        function fetchDashboardData() {
-            fetch('/api/dashboard-data')
-                .then(response => {
-                    if (response.status === 401) {
-                        window.location.reload(); // Redirect to login
-                        return;
-                    }
-                    return response.json();
-                })
+        // --- Fetch Students Logic ---
+        function fetchStudents() {
+            // We can reuse the dashboard data endpoint or create a full list endpoint.
+            // For now, let's create a specific endpoint or just fetch the 'recent' one and modify backend to allow 'limit=all'
+            // OR implies we need a new endpoint. Let's try to query a new endpoint /api/students/all
+            
+            fetch('/api/students/list')
+                .then(res => res.json())
                 .then(data => {
-                    if (data.error) {
-                        console.error('Error:', data.error);
+                    if(data.error) {
+                        document.getElementById('students-list-body').innerHTML = `<tr><td colspan="6">Error: ${data.error}</td></tr>`;
                         return;
                     }
-
-                    // Update Stats
-                    document.getElementById('total-students').innerText = data.total_students;
-                    document.getElementById('active-courses').innerText = data.active_courses;
-                    document.getElementById('pending-fees').innerText = '$' + data.pending_fees.toLocaleString();
-                    document.getElementById('pending-count').innerText = Math.round(data.pending_fees / 1200); // Estimate
                     
-                    // Update Table
-                    const tbody = document.getElementById('recent-students-body');
+                    const tbody = document.getElementById('students-list-body');
                     tbody.innerHTML = '';
                     
-                    data.recent_students.forEach((student, index) => {
-                        const row = document.createElement('tr');
-                        const statusColor = student.status === 'Active' ? '#2ed573' : '#ff4757';
-                        row.innerHTML = `
-                            <td>#${student.id || index + 1}</td>
+                    if(data.length === 0) {
+                         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No students found.</td></tr>`;
+                         return;
+                    }
+
+                    data.forEach(student => {
+                         const statusColor = student.status === 'Active' ? '#2ed573' : '#ff4757';
+                         const row = document.createElement('tr');
+                         row.innerHTML = `
+                            <td>#${student.id}</td>
                             <td>${student.name}</td>
                             <td>${student.course}</td>
                             <td>${student.enrollment_date}</td>
                             <td><span style="color: ${statusColor};">${student.status}</span></td>
-                        `;
-                        tbody.appendChild(row);
+                             <td>
+                                <button style="padding: 5px 10px; background: #666; font-size: 0.8rem;">Edit</button>
+                            </td>
+                         `;
+                         tbody.appendChild(row);
                     });
                 })
-                .catch(err => console.error('Fetch error:', err));
+                .catch(err => {
+                    console.error(err);
+                });
         }
-
-        // Fetch immediately then every 2 seconds
-        fetchDashboardData();
-        setInterval(fetchDashboardData, 2000);
+        
+        fetchStudents();
     </script>
 </body>
 </html>

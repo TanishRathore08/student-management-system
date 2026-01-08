@@ -319,5 +319,43 @@ def _debug_status():
         'config_host': os.environ.get("DB_HOST", "Not Set")
     }
 
+@app.route('/students')
+def students_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('students.html', username=session['username'])
+
+@app.route('/api/students/list')
+def list_students():
+    if 'username' not in session:
+        return {'error': 'Unauthorized'}, 401
+        
+    conn = get_db_connection()
+    if not conn:
+        return {'error': 'Database unavailable'}, 503
+
+    try:
+        if DB_TYPE == 'mysql':
+            cursor = conn.cursor(dictionary=True)
+        else:
+            cursor = conn.cursor()
+            
+        execute_query(cursor, "SELECT * FROM students ORDER BY id DESC")
+        students = cursor.fetchall()
+        
+        student_list = []
+        for s in students:
+            s_dict = dict(s)
+            if s_dict['enrollment_date']:
+                s_dict['enrollment_date'] = str(s_dict['enrollment_date'])
+            student_list.append(s_dict)
+            
+        return student_list # Flask auto-jsonify list
+    except Exception as e:
+        return {'error': str(e)}, 500
+    finally:
+        if 'cursor' in locals(): cursor.close()
+        conn.close()
+
 if __name__ == '__main__':
     app.run(debug=True)
