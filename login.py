@@ -1,16 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 import mysql.connector
 
+import os
+
 app = Flask(__name__)
 app.secret_key = '1234'  
 
 # connect to the database; if it fails, set conn = None so the app can still run
 try:
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Anita@#123",
-        database="college"
+        host=os.environ.get("DB_HOST", "localhost"),
+        user=os.environ.get("DB_USER", "root"),
+        password=os.environ.get("DB_PASSWORD", "Anita@#123"),
+        database=os.environ.get("DB_NAME", "college")
     )
     if conn.is_connected():
         print("Connected to MySQL Database!")
