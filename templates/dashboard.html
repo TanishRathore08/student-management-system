@@ -17,10 +17,10 @@
             </div>
             <ul class="nav-links">
                 <li><a href="#" class="active"><i class="fas fa-home"></i>&nbsp; Dashboard</a></li>
-                <li><a href="#"><i class="fas fa-user-graduate"></i>&nbsp; Students</a></li>
-                <li><a href="#"><i class="fas fa-chalkboard-teacher"></i>&nbsp; Courses</a></li>
-                <li><a href="#"><i class="fas fa-chart-bar"></i>&nbsp; Reports</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i>&nbsp; Settings</a></li>
+                <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-user-graduate"></i>&nbsp; Students</a></li>
+                <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-chalkboard-teacher"></i>&nbsp; Courses</a></li>
+                <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-chart-bar"></i>&nbsp; Reports</a></li>
+                <li><a href="#" onclick="alert('Feature Coming Soon!'); return false;"><i class="fas fa-cog"></i>&nbsp; Settings</a></li>
             </ul>
             <div class="user-profile">
                 <div class="user-avatar">
@@ -42,7 +42,7 @@
                     <p class="date-display">Here's what's happening with your students today.</p>
                 </div>
                 <div style="display: flex; gap: 15px;">
-                    <button style="width: auto; margin: 0; padding: 10px 20px;"><i class="fas fa-plus"></i> Add Student</button>
+                    <button id="addStudentBtn" style="width: auto; margin: 0; padding: 10px 20px;"><i class="fas fa-plus"></i> Add Student</button>
                     <!-- <button class="ghost" style="width: auto; margin: 0;"><i class="fas fa-bell"></i></button> -->
                 </div>
             </header>
@@ -127,13 +127,18 @@
     <script>
         // Modal Logic
         const modal = document.getElementById('addStudentModal');
-        const addBtn = document.querySelector('button i.fa-plus').parentElement; // Select the Add Student button
+        // Robust selector: ID explicitly added to button above
+        const addBtn = document.getElementById('addStudentBtn'); 
         
         // Make sure the modal is hidden initially via CSS class or inline style check
         modal.style.display = 'none';
 
-        addBtn.onclick = function() {
-            modal.style.display = 'flex';
+        if(addBtn) {
+            addBtn.onclick = function() {
+                modal.style.display = 'flex';
+            }
+        } else {
+            console.error("Add Student button not found!");
         }
 
         function closeModal() {
@@ -153,6 +158,12 @@
             const course = document.getElementById('s_course').value;
             const status = document.getElementById('s_status').value;
 
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = "Adding...";
+            submitBtn.disabled = true;
+
             fetch('/api/students', {
                 method: 'POST',
                 headers: {
@@ -170,9 +181,17 @@
                     document.getElementById('addStudentForm').reset();
                     // Refresh data immediately
                     fetchDashboardData();
+                    alert('Student added successfully!');
                 }
             })
-            .catch(err => alert('Failed to add student.'));
+            .catch(err => {
+                console.error(err);
+                alert('Connection Failed: ' + err.message);
+            })
+            .finally(() => {
+                submitBtn.innerText = originalText;
+                submitBtn.disabled = false;
+            });
         }
 
         function fetchDashboardData() {
