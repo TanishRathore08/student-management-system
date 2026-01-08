@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>SMS Portal</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active"><i class="fas fa-home"></i>&nbsp; Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-user-graduate"></i>&nbsp; Students</a></li>
+                <li><a href="#"><i class="fas fa-chalkboard-teacher"></i>&nbsp; Courses</a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i>&nbsp; Reports</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i>&nbsp; Settings</a></li>
+            </ul>
+            <div class="user-profile">
+                <div class="user-avatar">
+                    {{ username[0] | upper if username else 'U' }}
+                </div>
+                <div>
+                    <div style="font-weight: 600;">{{ username }}</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">Administrator</div>
+                </div>
+                <a href="{{ url_for('logout') }}" style="margin-left: auto; color: white;"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Welcome back, {{ username }}!</h1>
+                    <p class="date-display">Here's what's happening with your students today.</p>
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <button style="width: auto; margin: 0; padding: 10px 20px;"><i class="fas fa-plus"></i> Add Student</button>
+                    <!-- <button class="ghost" style="width: auto; margin: 0;"><i class="fas fa-bell"></i></button> -->
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="card">
+                    <div class="card-title">Total Students</div>
+                    <div class="card-value" id="total-students">Loading...</div>
+                    <div class="card-trend"><i class="fas fa-arrow-up"></i> +12% from last month</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Active Courses</div>
+                    <div class="card-value" id="active-courses">Loading...</div>
+                    <div class="card-trend"><i class="fas fa-check"></i> All systems operational</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Attendance Rate</div>
+                    <div class="card-value">95%</div>
+                    <div class="card-trend"><i class="fas fa-arrow-up"></i> +2% increase</div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Pending Fees</div>
+                    <div class="card-value" id="pending-fees">Loading...</div>
+                    <div class="card-trend" style="color: #ff9f43;"><i class="fas fa-exclamation-circle"></i> <span id="pending-count">...</span> students pending</div>
+                </div>
+            </div>
+
+            <div class="recent-activity">
+                <h3>Recent Enrolled Students</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Course</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-students-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</div>
+    </div>
+    <script>
+        function fetchDashboardData() {
+            fetch('/api/dashboard-data')
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.reload(); // Redirect to login
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+
+                    // Update Stats
+                    document.getElementById('total-students').innerText = data.total_students;
+                    document.getElementById('active-courses').innerText = data.active_courses;
+                    document.getElementById('pending-fees').innerText = '$' + data.pending_fees.toLocaleString();
+                    
+                    // Update Table
+                    const tbody = document.getElementById('recent-students-body');
+                    tbody.innerHTML = '';
+                    
+                    data.recent_students.forEach((student, index) => {
+                        const row = document.createElement('tr');
+                        const statusColor = student.status === 'Active' ? '#2ed573' : '#ff4757';
+                        row.innerHTML = `
+                            <td>#${index + 1}</td>
+                            <td>${student.name}</td>
+                            <td>${student.course}</td>
+                            <td>${student.enrollment_date}</td>
+                            <td><span style="color: ${statusColor};">${student.status}</span></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(err => console.error('Fetch error:', err));
+        }
+
+        // Fetch immediately then every 2 seconds
+        fetchDashboardData();
+        setInterval(fetchDashboardData, 2000);
+    </script>
+</body>
+</html>

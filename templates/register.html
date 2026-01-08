@@ -2,33 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Student Portal</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-        <div class="login-container">
-            <h2>Register</h2>
+    <div class="auth-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="icon-circle">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2>Create Account</h2>
+                <p>Join the student management portal</p>
+            </div>
+
             <form method="POST" action="/register">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input id="username" type="text" name="username" required>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input id="username" type="text" name="username" placeholder="Username" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input id="email" type="email" name="email" required>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input id="email" type="email" name="email" placeholder="Email Address" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input id="password" type="password" name="password" required>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input id="password" type="password" name="password" placeholder="Password" required>
                 </div>
 
-                <button type="submit">Register</button>
+                <button type="submit" class="btn-login">
+                    Register <i class="fas fa-arrow-right"></i>
+                </button>
 
-                <p class="message">{{ msg }}</p>
-                <p class="small">Already have an account? <a class="link" href="/login">Login here</a></p>
+                {% if msg %}
+                <div class="alert-box">
+                    <i class="fas fa-exclamation-circle"></i> {{ msg }}
+                </div>
+                {% endif %}
+
+                <p class="footer-text">
+                    Already have an account? <a href="/login">Sign In</a>
+                </p>
             </form>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

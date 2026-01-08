@@ -78,7 +78,7 @@ def register():
 def main():
     if 'username' in session:
         username = session['username']
-        return f"<h2>Welcome, {username}!</h2><br><a href='/logout'>Logout</a>"
+        return render_template('dashboard.html', username=username)
     else:
         return redirect(url_for('login'))
 
@@ -107,6 +107,48 @@ def _debug_users():
     for r in rows:
         out.append(str(r))
     return "<pre>" + "\n".join(out) + "</pre>"
+
+
+@app.route('/api/dashboard-data')
+def dashboard_data():
+    if 'username' not in session:
+        return {'error': 'Unauthorized'}, 401
+    
+    if not conn:
+        return {'error': 'Database unavailable'}, 503
+        
+    cursor = conn.cursor(dictionary=True) # Use dictionary cursor for JSON friendly output
+    data = {}
+    try:
+        # Total Students
+        cursor.execute("SELECT COUNT(*) as count FROM students")
+        data['total_students'] = cursor.fetchone()['count']
+        
+        # Active Courses
+        cursor.execute("SELECT COUNT(*) as count FROM courses WHERE status='Active'")
+        data['active_courses'] = cursor.fetchone()['count']
+        
+        # Pending Fees
+        cursor.execute("SELECT SUM(amount) as total FROM fees WHERE status='Pending'")
+        res = cursor.fetchone()
+        data['pending_fees'] = float(res['total']) if res['total'] else 0
+        
+        # Recent Students
+        cursor.execute("SELECT name, course, enrollment_date, status FROM students ORDER BY enrollment_date DESC LIMIT 5")
+        students = cursor.fetchall()
+        # Convert date to string
+        for s in students:
+            if s['enrollment_date']:
+                s['enrollment_date'] = str(s['enrollment_date'])
+        data['recent_students'] = students
+        
+    except Exception as e:
+        print(f"Error fetching dashboard data: {e}")
+        return {'error': str(e)}, 500
+    finally:
+        cursor.close()
+        
+    return data
 
 
 if __name__ == '__main__':

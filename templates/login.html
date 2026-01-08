@@ -2,30 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Student Portal</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-
 <body>
-        <div class="login-container">
-            <h2>Login</h2>
+    <div class="auth-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="icon-circle">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h2>Welcome Back</h2>
+                <p>Enter your credentials to access your account</p>
+            </div>
+            
             <form method="POST" action="/login">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input id="username" type="text" name="username" required>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input id="username" type="text" name="username" placeholder="Username" required>
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input id="password" type="password" name="password" required>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input id="password" type="password" name="password" placeholder="Password" required>
                 </div>
 
-                <button type="submit">Login</button>
+                <button type="submit" class="btn-login">
+                    Sign In <i class="fas fa-arrow-right"></i>
+                </button>
 
-                <p class="message">{{ msg }}</p>
-                <p class="small">Don't have an account? <a class="link" href="/register">Register here</a></p>
+                {% if msg %}
+                <div class="alert-box">
+                    <i class="fas fa-exclamation-circle"></i> {{ msg }}
+                </div>
+                {% endif %}
+
+                <p class="footer-text">
+                    New Student? <a href="/register">Create Account</a>
+                </p>
             </form>
+        </div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
